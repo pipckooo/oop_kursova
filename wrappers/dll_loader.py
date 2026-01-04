@@ -1,3 +1,4 @@
+# wrappers/dll_loader.py
 import ctypes
 import os
 
@@ -20,3 +21,24 @@ class IntArray(ctypes.Structure):
 # Спільні функції
 lib.Free_array.argtypes = [ctypes.POINTER(IntArray)]
 lib.Free_array.restype = None
+try:
+    lib = ctypes.CDLL(lib_path)
+except OSError as e:
+    print(f"ERROR: Could not load {lib_path}. ")
+    raise e
+
+# === Структури даних ===
+class IntArray(ctypes.Structure):
+    _fields_ = [("data", ctypes.POINTER(ctypes.c_int)), ("size", ctypes.c_int)]
+
+# НОВЕ: Структура для дробових чисел (координати ворогів)
+class FloatArray(ctypes.Structure):
+    _fields_ = [("data", ctypes.POINTER(ctypes.c_float)), ("size", ctypes.c_int)]
+
+# === Функції очищення пам'яті ===
+lib.Free_array.argtypes = [ctypes.POINTER(IntArray)]
+lib.Free_array.restype = None
+
+# НОВЕ: Очищення float масиву
+lib.Free_float_array.argtypes = [ctypes.POINTER(FloatArray)]
+lib.Free_float_array.restype = None

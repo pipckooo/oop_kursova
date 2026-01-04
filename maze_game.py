@@ -131,14 +131,15 @@ class MazeGame:
         pygame.draw.line(self.screen, WHITE, (VIEW_W, 0), (VIEW_W, VIEW_H), 4)
 
     def _render_hud(self):
-        s1 = self.font.render(f"Rabbit: {self.session.player1.score}", True, TEXT_GOLD)
+        # Отримуємо очки через новий безпечний метод
+        score1, score2 = self.session.get_scores()
 
+        # Малюємо P1
+        s1 = self.font.render(f"Rabbit: {score1}", True, TEXT_GOLD)
 
-        if self.session.player2:
-            lbl2 = "Bot" if self.session.player2.is_bot else "Mouse"
-            s2 = self.font.render(f"{lbl2}: {self.session.player2.score}", True, TEXT_GOLD)
-        else:
-            s2 = self.font.render("", True, TEXT_GOLD)
+        # Малюємо P2 (визначаємо назву: якщо режим PvP - Mouse, інакше - Bot)
+        lbl2 = "Mouse" if self.session.game_mode == "PvP" else "Bot"
+        s2 = self.font.render(f"{lbl2}: {score2}", True, TEXT_GOLD)
 
         self.screen.blit(s1, (20, 20))
         self.screen.blit(s2, (VIEW_W + 20, 20))

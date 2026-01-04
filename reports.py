@@ -1,13 +1,11 @@
+#reports.py
 import os
 from datetime import datetime
 from wrapper import MazeWrapper  # Підключаємо нашу C++ обгортку
 
 
 class ReportManager:
-    """
-    Відповідає за генерацію аналітичних звітів.
-    Використовує C++ для розрахунку складності пройденого рівня.
-    """
+
 
     @staticmethod
     def generate(save_data):
@@ -23,14 +21,13 @@ class ReportManager:
         lines.append(f"Map Logic Size: {w} x {h}")
         lines.append(f"Map Seed: {seed}")
 
-        # --- C++ ANALYTICS ---
-        # Ми можемо миттєво відтворити лабіринт, щоб порахувати статистику
+
         try:
-            # Створюємо тимчасовий лабіринт через Wrapper
+
             temp_maze = MazeWrapper(w, h)
             temp_maze.generate(seed)
 
-            # Рахуємо ідеальний шлях від (1,1) до (max, max)
+
             start_node = (1, 1)
             end_node = (temp_maze.real_w - 2, temp_maze.real_h - 2)
 
@@ -40,15 +37,15 @@ class ReportManager:
             lines.append(f"Optimal Path Length: {optimal_steps} steps")
             lines.append(f"Maze Complexity: {'High' if optimal_steps > 100 else 'Normal'}")
 
-            # MazeWrapper видалиться автоматично і очистить пам'ять
+
         except Exception as e:
             lines.append(f"[Analytics Error: {e}]")
 
         lines.append("-" * 25)
 
-        # Рахунок
+
         s1 = save_data['p1']['score']
-        # Перевірка на наявність другого гравця (для сумісності)
+
         s2 = save_data['p2']['score'] if 'p2' in save_data else 0
 
         lines.append(f"Player 1 Score: {s1}")

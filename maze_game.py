@@ -1,4 +1,6 @@
+#maze_game.py
 import pygame
+
 import sys
 import os
 from config import *
@@ -15,20 +17,20 @@ class MazeGame:
     def __init__(self):
         self._init_pygame()
 
-        # --- ВИПРАВЛЕННЯ 2: Ініціалізуємо менеджер ресурсів ---
+
         self.assets = AssetManager()
-        self.assets.load_all()  # Завантажуємо картинки та звуки
+        self.assets.load_all()
 
         self.font = pygame.font.SysFont("Arial", 30, bold=True)
         self.ui = UI(self.screen)
 
-        # Передаємо об'єкт менеджера в сесію
-        self.session = GameSession(self.assets)
+
+        self.session = GameSession("PvP", "Medium", self.assets)
 
         self._init_state()
         self.init_music()
 
-        # Реєстр станів
+
         self.state_handlers = {
             "MENU": self.handle_menu,
             "MODES": self.handle_modes,
@@ -48,7 +50,7 @@ class MazeGame:
         pygame.display.set_caption("Maze Speedrun: Ultimate Edition")
         self.clock = pygame.time.Clock()
         self.surf1 = pygame.Surface((VIEW_W, VIEW_H))
-        self.surf2 = pygame.Surface((VIEW_W, VIEW_W))
+        self.surf2 = pygame.Surface((VIEW_W, VIEW_H))
 
     def _init_state(self):
         self.state = "MENU"
@@ -62,7 +64,7 @@ class MazeGame:
         self.report_lines = []
 
     def init_music(self):
-        # --- ВИПРАВЛЕННЯ 3: Отримуємо шлях до музики через метод ---
+
         music_path = self.assets.get_music_path()
         if music_path and os.path.exists(music_path):
             try:
@@ -76,12 +78,12 @@ class MazeGame:
         self.volume = max(0.0, min(1.0, v))
         pygame.mixer.music.set_volume(self.volume * 0.5)
 
-        # Отримуємо об'єкт звуку через менеджер, щоб змінити гучність
-        sfx = self.assets.get_image('sfx_coin')  # get_image повертає raw об'єкт з _data
+
+        sfx = self.assets.get_image('sfx_coin')
         if sfx and isinstance(sfx, pygame.mixer.Sound):
             sfx.set_volume(self.volume)
 
-    # MAIN LOOP
+
     def run(self):
         while self.running:
             self._process_system_events()
@@ -104,7 +106,7 @@ class MazeGame:
             if e.type == pygame.QUIT:
                 self.running = False
 
-    # HELPERS
+
     def _save_and_menu(self):
         GameStorage.add_save(self.session)
         self.state = "MENU"
@@ -122,7 +124,7 @@ class MazeGame:
         max_scroll = max(0, len(self.saves_cache) - 5)
         self.scroll_offset = max(0, min(self.scroll_offset, max_scroll))
 
-    # --- RENDER HELPERS (Visuals) ---
+
     def _render_split_screen(self):
         self.screen.blit(self.surf1, (0, 0))
         self.screen.blit(self.surf2, (VIEW_W, 0))
@@ -131,7 +133,7 @@ class MazeGame:
     def _render_hud(self):
         s1 = self.font.render(f"Rabbit: {self.session.player1.score}", True, TEXT_GOLD)
 
-        # Перевірка на існування другого гравця (щоб уникнути помилок при завантаженні меню)
+
         if self.session.player2:
             lbl2 = "Bot" if self.session.player2.is_bot else "Mouse"
             s2 = self.font.render(f"{lbl2}: {self.session.player2.score}", True, TEXT_GOLD)
@@ -141,7 +143,8 @@ class MazeGame:
         self.screen.blit(s1, (20, 20))
         self.screen.blit(s2, (VIEW_W + 20, 20))
 
-    # GAME STATE
+
+
     def handle_game(self):
         self._input_game()
         self._logic_game()
@@ -161,14 +164,14 @@ class MazeGame:
             pygame.mixer.music.stop()
 
     def _draw_game(self):
-        # 1. Малюємо світ у буфери
+
         self.session.draw(self.surf1, self.surf2)
-        # 2. Компонуємо на екран
+
         self._render_split_screen()
-        # 3. Інтерфейс
+
         self._render_hud()
 
-    # PAUSE STATE
+
     def handle_pause(self):
         self._render_split_screen()
         ui_rects = self.ui.draw_pause_menu(self.volume)
@@ -191,7 +194,7 @@ class MazeGame:
                 elif b_menu.collidepoint(self.mouse_pos):
                     self.state = "MENU"
 
-    # MENU STATE
+
     def handle_menu(self):
         buttons = self.ui.draw_main_menu(self.size_keys[self.curr_size_idx])
         for e in self.events:
@@ -214,7 +217,7 @@ class MazeGame:
         elif b_exit.collidepoint(self.mouse_pos):
             self.running = False
 
-    # SETTINGS STATE
+
     def handle_settings(self):
         slider_rect, btn_back = self.ui.draw_settings_menu(self.volume)
         self._process_slider(slider_rect)
@@ -224,7 +227,7 @@ class MazeGame:
                 if btn_back.collidepoint(self.mouse_pos):
                     self.state = "MENU"
 
-    # LOAD STATE
+
     def handle_load(self):
         back_btn, save_rects = self.ui.draw_load_menu(self.saves_cache, self.scroll_offset)
 
@@ -247,7 +250,7 @@ class MazeGame:
                     self.selected_save = self.saves_cache[idx]
                     self.state = "SAVE_OPTIONS"
 
-    # OTHER SIMPLE STATES
+
     def handle_modes(self):
         b1, b2, b3, b_back = self.ui.draw_modes_menu()
         for e in self.events:

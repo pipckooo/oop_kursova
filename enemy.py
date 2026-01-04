@@ -1,114 +1,114 @@
 import pygame
-from config import CELL_SIZE
+import random
 
 
 class Enemy:
     def __init__(self, x, y, assets, maze_wrapper, coin_wrapper):
-        self.x = x
-        self.y = y
+        self.grid_x = int(x)
+        self.grid_y = int(y)
+        self.x = float(x)
+        self.y = float(y)
         self.is_bot = True
         self.score = 0
-
-        # Графіка
         self.assets = assets
         self.img_idle = assets.get_image('p2_idle')
         self.img_move_list = assets.get_image('p2_move')
-
         self.frame_index = 0
-        self.animation_speed = 0.15
+        self.animation_speed = 0.25
+        self.facing_left = False
         self.is_moving = False
 
-        # Логіка
         self.maze = maze_wrapper
         self.coins = coin_wrapper
-        self.path = []
-        self.move_delay = 150
-        self.last_move_time = 0
+
+        # DFS логіка
+        self.visited = set()
+        self.path_stack = []
+        self.current_target = None
+        self.move_progress = 0.0
 
     def update(self):
-        self.is_moving = False
 
-        if not self._is_move_cooldown_over():
-            return
+        val = self.coins.check_collection(self.grid_x, self.grid_y)
+        if val > 0:
+            self.score += val
+            self.assets.play_coin_sound()
 
-        # Якщо шляху немає — шукаємо ціль
-        if not self.path:
-            self._find_new_target()
 
-        # Якщо шлях з'явився — йдемо
-        if self.path:
-            self._step_forward()
-        else:
-            # DEBUG: Якщо бот стоїть, чому?
-            # Розкоментуй, якщо хочеш бачити спам у консолі
-            # print(f"[Bot] Standing at {self.x},{self.y}. Path is empty.")
-            pass
-
-    def _find_new_target(self):
-        # 1. Отримуємо список монет
-        active_coins = self.coins.get_active_coins_list()
-
-        if not active_coins:
-            print("[Bot] No active coins found on map!")
-            return
-
-            # 2. Шукаємо найближчу
-        target = self._get_nearest_coin(active_coins)
-
-        if target:
-            # 3. Шукаємо шлях
-            # print(f"[Bot] Calculate path: {self.x},{self.y} -> {target['x']},{target['y']}")
-            found_path = self.maze.find_path(self.x, self.y, target['x'], target['y'])
-
-            if found_path:
-                self.path = found_path
-                # Видаляємо поточну точку (щоб не топтатися на місці)
-                if len(self.path) > 0:
-                    self.path.pop(0)
-                # print(f"[Bot] Path found! Length: {len(self.path)}")
+        if self.current_target:
+            self.move_progress += 0.15
+            if self.move_progress >= 1.0:
+                self.grid_x, self.grid_y = self.current_target
+                self.x, self.y = float(self.grid_x), float(self.grid_y)
+                self.current_target = None
+                self.move_progress = 0.0
+                self.is_moving = False
             else:
-                print(f"[Bot] Pathfinding failed to {target['x']},{target['y']} (Walls?)")
+                dx, dy = self.current_target[0] - self.grid_x, self.current_target[1] - self.grid_y
+                self.x = self.grid_x + dx * self.move_progress
+                self.y = self.grid_y + dy * self.move_progress
+                self.is_moving = True
+                self.facing_left = dx < 0
+                self.frame_index += self.animation_speed
+                if self.frame_index >= len(self.img_move_list):
+                    self.frame_index = 0
+                return
 
-    def _get_nearest_coin(self, coins_list):
-        nearest = None
-        min_dist = float('inf')
-        for c in coins_list:
-            dist = abs(self.x - c['x']) + abs(self.y - c['y'])
-            if dist < min_dist:
-                min_dist = dist
-                nearest = c
-        return nearest
 
-    def _step_forward(self):
-        if not self.path: return
+        self._dfs_step()
 
-        next_step = self.path.pop(0)
-        self.x = next_step[0]
-        self.y = next_step[1]
+    def _dfs_step(self):
+        self.visited.add((self.grid_x, self.grid_y))
 
-        self.is_moving = True
-        self.last_move_time = pygame.time.get_ticks()
 
-        # Збір монет
-        if self.coins:
-            val = self.coins.check_collection(self.x, self.y)
-            if val > 0:
-                print(f"[Bot] Coin collected! Score +{val}")
-                self.score += val
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        random.shuffle(directions)
 
-    def _is_move_cooldown_over(self):
-        return pygame.time.get_ticks() - self.last_move_time > self.move_delay
+        for dx, dy in directions:
+            nx, ny = self.grid_x + dx, self.grid_y + dy
+            if self.maze.is_walkable(nx, ny) and (nx, ny) not in self.visited:
 
-    def draw(self, surface, offset_x, offset_y):
-        img = self.img_idle
-        if self.is_moving:
-            self.frame_index += self.animation_speed
-            if self.frame_index >= len(self.img_move_list):
-                self.frame_index = 0
-            img = self.img_move_list[int(self.frame_index)]
+                if self._has_coin(nx, ny):
 
-        screen_x = self.x * CELL_SIZE - offset_x
-        screen_y = self.y * CELL_SIZE - offset_y
+                    self.path_stack.append((self.grid_x, self.grid_y))
+                    self.current_target = (nx, ny)
+                    return
 
-        if img:
-            surface.blit(img, (screen_x, screen_y))
+
+        for dx, dy in directions:
+            nx, ny = self.grid_x + dx, self.grid_y + dy
+            if self.maze.is_walkable(nx, ny) and (nx, ny) not in self.visited:
+                self.path_stack.append((self.grid_x, self.grid_y))
+                self.current_target = (nx, ny)
+                return
+
+
+        if self.path_stack:
+            prev_x, prev_y = self.path_stack.pop()
+            self.current_target = (prev_x, prev_y)
+        else:
+
+            self.visited.clear()
+
+    def _has_coin(self, x, y):
+
+        active_coins = self.coins.get_active_coins_list()
+        for coin in active_coins:
+            if coin['x'] == x and coin['y'] == y:
+                return True
+        return False
+
+    def draw(self, surface, cam_x, cam_y):
+        from config import CELL_SIZE
+        screen_x = self.x * CELL_SIZE - cam_x
+        screen_y = self.y * CELL_SIZE - cam_y
+
+        if self.is_moving and self.img_move_list:
+            img = self.img_move_list[int(self.frame_index) % len(self.img_move_list)]
+        else:
+            img = self.img_idle
+
+        if self.facing_left:
+            img = pygame.transform.flip(img, True, False)
+
+        surface.blit(img, (screen_x, screen_y))

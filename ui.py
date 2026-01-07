@@ -35,7 +35,6 @@ class UI:
         pygame.draw.circle(self.screen, WHITE, (handle_x, cy), 12)
         return slider_rect
 
-    # --- MAIN MENU ---
     def draw_main_menu(self, current_size):
         self.screen.fill(UI_BG)
         title = self.font_big.render("MAZE RUNNER", True, TEXT_GOLD)
@@ -50,7 +49,6 @@ class UI:
         b5 = self.draw_button("EXIT", cx, 460, mp)
         return b1, b2, b3, b4, b5
 
-    # --- MODES ---
     def draw_modes_menu(self):
         self.screen.fill(UI_BG)
         title = self.font_big.render("SELECT MODE", True, WHITE)
@@ -63,7 +61,6 @@ class UI:
         b_back = self.draw_button("BACK", cx, 450, mp)
         return b1, b2, b3, b_back
 
-    # --- SETTINGS ---
     def draw_settings_menu(self, volume):
         self.screen.fill(UI_BG)
         title = self.font_big.render("SETTINGS", True, WHITE)
@@ -74,7 +71,6 @@ class UI:
         btn_back = self.draw_button("BACK TO MENU", cx, 500, mp)
         return slider, btn_back
 
-    # --- LOAD MENU ---
     def draw_load_menu(self, saves, scroll_y):
         self.screen.fill(UI_BG)
         title = self.font_big.render("SELECT SAVE", True, WHITE)
@@ -98,7 +94,6 @@ class UI:
             rect = self.draw_button(label, cx, start_y + i * 70, mp, 450)
             buttons.append(rect)
 
-        # Scrollbar
         if len(saves) > visible_items:
             bar_x = cx + 240
             bar_y = start_y - 25
@@ -111,9 +106,7 @@ class UI:
         btn_back = self.draw_button("BACK", cx, 550, mp)
         return btn_back, buttons
 
-    # === НОВЕ: ОПЦІЇ ЗБЕРЕЖЕННЯ ===
     def draw_save_options(self, save_data):
-        # Напівпрозорий фон, щоб не перекривати все повністю
         self.screen.fill(UI_BG)
 
         title = self.font_big.render("SAVE OPTIONS", True, TEXT_GOLD)
@@ -127,39 +120,35 @@ class UI:
         mp = pygame.mouse.get_pos()
         cx = SCREEN_W // 2
 
-        # Кнопки дій
         b_resume = self.draw_button("RESUME GAME", cx, 250, mp)
-        b_report = self.draw_button("ANALYZE / REPORT", cx, 320, mp)  # Аналітика
+        b_report = self.draw_button("ANALYZE / REPORT", cx, 320, mp)
         b_back = self.draw_button("BACK", cx, 460, mp)
 
         return b_resume, b_report, b_back
 
-    # === НОВЕ: ВІКНО ЗВІТУ ===
     def draw_report_view(self, report_lines):
-        self.screen.fill((30, 30, 30))  # Темно-сірий фон, як документ
+        self.screen.fill((30, 30, 30))
 
         # Заголовок
         title = self.font_big.render("GAME REPORT", True, WHITE)
         self.screen.blit(title, (SCREEN_W // 2 - title.get_width() // 2, 40))
 
-        # Виведення тексту рядками
         start_y = 120
         for line in report_lines:
-            txt_surf = self.font_mono.render(line, True, (200, 255, 200))  # Зеленуватий текст
-            # Центруємо або вирівнюємо вліво
+            txt_surf = self.font_mono.render(line, True, (200, 255, 200))
+
             self.screen.blit(txt_surf, (SCREEN_W // 2 - 200, start_y))
             start_y += 30
 
         mp = pygame.mouse.get_pos()
         cx = SCREEN_W // 2
 
-        # Кнопки внизу
         b_print = self.draw_button("PRINT TO FILE (.txt)", cx, 500, mp, width=350)
         b_back = self.draw_button("BACK", cx, 570, mp)
 
         return b_print, b_back
 
-    # --- PAUSE ---
+
     def draw_pause_menu(self, volume):
         overlay = pygame.Surface((SCREEN_W, SCREEN_H))
         overlay.set_alpha(150)
@@ -175,7 +164,7 @@ class UI:
         b4 = self.draw_button("MAIN MENU", cx, 430, mp)
         return b1, b2, slider, b4
 
-    # --- GAME OVER ---
+
     def draw_game_over(self, s1, s2):
         overlay = pygame.Surface((SCREEN_W, SCREEN_H))
         overlay.set_alpha(200)

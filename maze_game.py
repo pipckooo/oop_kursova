@@ -7,7 +7,7 @@ from config import *
 from ui import UI
 from storage import GameStorage
 
-# --- ВИПРАВЛЕННЯ 1: Імпортуємо нові класи ---
+
 from assets import AssetManager
 from reports import ReportManager
 from game_session import GameSession
@@ -277,7 +277,7 @@ class MazeGame:
                     self.session.load_save(self.selected_save);
                     self.state = "GAME"
                 elif b_rep.collidepoint(self.mouse_pos):
-                    # --- ВИПРАВЛЕННЯ 4: Використовуємо клас ReportManager ---
+
                     self.report_lines = ReportManager.generate(self.selected_save)
                     self.state = "REPORT"
                 elif b_back.collidepoint(self.mouse_pos):
@@ -288,13 +288,13 @@ class MazeGame:
         for e in self.events:
             if e.type == pygame.MOUSEBUTTONDOWN:
                 if b_print.collidepoint(self.mouse_pos):
-                    # --- ВИПРАВЛЕННЯ 4: Використовуємо клас ReportManager ---
+
                     ReportManager.save_to_file(self.report_lines)
                 elif b_back.collidepoint(self.mouse_pos):
                     self.state = "SAVE_OPTIONS"
 
     def handle_game_over(self):
-        # Безпечне отримання рахунку p2
+
         s2 = self.session.player2.score if self.session.player2 else 0
         b_save = self.ui.draw_game_over(self.session.player1.score, s2)
 

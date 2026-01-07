@@ -1,7 +1,7 @@
 #wrapper.py
 import ctypes
 import os
-from coin_wrapper import CoinWrapper
+from wrappers.coin_wrapper import CoinWrapper
 from int_array import IntArray
 
 

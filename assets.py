@@ -100,7 +100,6 @@ class AssetManager:
         return walls[texture_index % len(walls)]
 
     def get_coin_texture(self, coin_type):
-        """Безпечно повертає текстуру монети"""
         coins = self._data.get('coins', [])
         if not coins:
             return self._data['floor']
